@@ -1,0 +1,189 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apigee
+  labels:
+    edge/routable: "true"
+  annotations:
+    edge/hosts: '{"api.shipyard.local":{}}'
+
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shipyard
+  labels:
+    edge/routable: "true"
+  annotations:
+    edge/hosts: '{"api.shipyard.local":{}}'
+
+---
+
+
+####
+# Deploys the ingress controller as a daemon set, then creates the external ELB to serve it traffic
+###
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+# kind: Deployment
+metadata:
+  name: dispatchers
+  labels:
+    app: dispatchers
+  namespace: apigee
+spec:
+  # replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dispatchers
+    spec:
+      containers:
+      - image: thirtyx/dispatcher
+        imagePullPolicy: IfNotPresent
+        name: k8s-public-router
+        ports:
+          - containerPort: 80
+            hostPort: 30555
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          # Use the configuration to use the public/private paradigm (public version)
+          - name: API_KEY_SECRET_FIELD
+            value: api-key
+          - name: ROUTABLE_LABEL_SELECTOR
+            value: edge/routable=true
+          - name: HOSTS_ANNOTATION
+            value: edge/hosts
+          - name: ORG_ANNOTATION
+            value: edge/org
+          - name: ENV_ANNOTATION
+            value: edge/env
+          - name: PATHS_ANNOTATION
+            value: edge/paths
+          - name: APP_NAME_LABEL
+            value: edge/app.name
+          - name: APP_REV_LABEL
+            value: edge/app.rev
+          - name: PORT
+            value: "80"
+            
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: enrober
+  labels:
+    name: enrober
+  namespace: shipyard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: enrober
+  template:
+    metadata:
+      labels:
+        component: enrober
+        edge/routable: "true"
+      annotations:
+        edge/paths: '[{"basePath": "/environments", "containerPort": "9000"}]'
+    spec:
+      containers:
+      - name: enrober
+        image: thirtyx/enrober:v0.6.0
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: DEPLOY_STATE
+            value: "PROD"
+          - name: APIGEE_KVM
+            value: "true"
+          - name: AUTH_API_HOST
+            value: "https://api.e2e.apigee.net/"
+          - name: ECR_SECRET
+            value: "false"
+          - name: SHIPYARD_HOST
+            value: "sso.k8s.dev"
+          - name: INTERNAL_ROUTER_HOST
+            value: "internal-router.apigee"
+          - name: PTS_URL_HOST_RESTRICTION
+            value: "false"
+        ports:
+          - containerPort: 9000
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kiln
+  labels:
+    name: kiln
+  namespace: shipyard
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: kiln
+        edge/routable: "true"
+      annotations:
+        edge/paths: '[{"basePath": "/imagespaces", "containerPort": "5280"}]'
+    spec:
+      containers:
+      - image: thirtyx/kiln
+        imagePullPolicy: Always
+        name: kiln
+        ports:
+        - containerPort: 5280
+        env:
+        - name: PORT
+          value: "5280"
+        - name: DOCKER_PROVIDER
+          value: docker
+        - name: DOCKER_HOST
+          value: unix:///var/run/docker.sock
+        - name: POD_PROVIDER
+          value: local
+        - name: SHUTDOWN_TIMEOUT
+          value: "60"
+        - name: AUTH_API_HOST
+          value: api.e2e.apigee.net
+        - name: NO_REAP
+          value: "true"
+        - name: LOCAL_REGISTRY_ONLY
+          value: "true"
+        - name: LOCAL_DIR
+          value: /tmp/storagedir
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: dockersocket
+          readOnly: false
+
+      volumes:
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: internal-router # used by ssoproxy only
+  namespace: apigee
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 81
+  selector:
+    app: dispatchers
