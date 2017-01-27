@@ -5,7 +5,7 @@ metadata:
   labels:
     edge/routable: "true"
   annotations:
-    edge/hosts: '{"api.shipyard.local":{}}'
+    edge/hosts: '{"api.shipyard.dev":{}}'
 
 ---
 
@@ -16,7 +16,7 @@ metadata:
   labels:
     edge/routable: "true"
   annotations:
-    edge/hosts: '{"api.shipyard.local":{}}'
+    edge/hosts: '{"api.shipyard.dev":{}}'
 
 ---
 

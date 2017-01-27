@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ShipyardHost = "api.shipyard.local"
+	ShipyardHost = "api.shipyard.dev"
 )
 
 func TestShipyard(t *testing.T) {

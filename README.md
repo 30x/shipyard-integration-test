@@ -26,6 +26,6 @@
 
 Get minikube ip `minikube ip` and add to `/etc/hosts`.
 
-`192.168.99.100  api.shipyard.local`
+`192.168.99.100  api.shipyard.dev`
 
-Calls to `http://api.shipyard.local:30555/environments` will hit enrober.
+Calls to `http://api.shipyard.dev:30555/environments` will hit enrober.
