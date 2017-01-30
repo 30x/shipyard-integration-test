@@ -11,17 +11,8 @@ export API_BASE_PATH=http://$(shell minikube ip 2> /dev/null):30555/
 export APIGEE_ORG=adammagaluk1
 export APIGEE_ENV=test
 
-# Make sure to set TOKEN outside of this file
-check-env:
-ifndef TOKEN
-    $(error TOKEN is undefined)
-endif
-ifndef APIGEE_ORG
-    $(error APIGEE_ORG is undefined)
-endif
-ifndef APIGEE_ENV
-    $(error APIGEE_ENV is undefined)
-endif
+test-kubectl:
+	/bin/sh -c 'if [ "$$(kubectl config current-context)" != "minikube" ]; then exit 1; fi'
 
 setup-containers:
 	eval $$(minikube docker-env)
@@ -35,18 +26,18 @@ setup-containers:
 	docker pull thirtyx/dispatcher:$(DISPATCHER_TAG)
 	docker tag thirtyx/dispatcher:$(DISPATCHER_TAG) thirtyx/dispatcher
 
-setup-k8s:
+setup-k8s: test-kubectl
 	kubectl create -f deploy/shipyard-all.yaml
 
 setup: setup-containers setup-k8s
 
-teardown:
-	kubectl delete ns/apigee
-	kubectl delete ns/shipyard
+teardown: test-kubectl
+	kubectl delete ns/shipyard || true
 
-test: check-env
+test: test-kubectl
 	go test -v ./test/...
 
 get-token:
 	export TOKEN=`SSO_LOGIN_URL=https://login.e2e.apigee.net get_token`
+
 
