@@ -1,7 +1,7 @@
 # Container configuration, what are we testing
 export ENROBER_TAG=v0.6.0
 export DISPATCHER_TAG=latest
-export KILN_TAG=local
+export KILN_TAG=0.1.19
 
 # Base path for all API calls
 export AUTH_API_HOST=https://api.e2e.apigee.net/

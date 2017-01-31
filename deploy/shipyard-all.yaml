@@ -200,7 +200,7 @@ spec:
         name: kiln
         edge/routable: "true"
       annotations:
-        edge/paths: '[{"basePath": "/imagespaces", "containerPort": "5280"}]'
+        edge/paths: '[{"basePath": "/organizations", "containerPort": "5280"}]'
     spec:
       containers:
       - image: thirtyx/kiln
@@ -211,50 +211,28 @@ spec:
         env:
         - name: PORT
           value: "5280"
+        - name: DEPLOY_STATE
+          value: "DEV_CONTAINER"
+        - name: DOCKER_REGISTRY_URL
+          value: "local"
         - name: DOCKER_PROVIDER
           value: docker
         - name: DOCKER_HOST
           value: unix:///var/run/docker.sock
-        - name: POD_PROVIDER
-          value: local
         - name: SHUTDOWN_TIMEOUT
           value: "60"
         - name: NO_REAP
           value: "true"
-        - name: LOCAL_REGISTRY_ONLY
-          value: "true"
-        - name: LOCAL_DIR
-          value: /tmp/storagedir
         - name: AUTH_API_HOST
           valueFrom:
             configMapKeyRef:
               name: shipyard-config
               key: AUTH_API_HOST
-        - name: ROUTABLE_LABEL_SELECTOR
-          valueFrom:
-            configMapKeyRef:
-              name: shipyard-config
-              key: ROUTABLE_LABEL_SELECTOR
-        - name: HOSTS_ANNOTATION
-          valueFrom:
-            configMapKeyRef:
-              name: shipyard-config
-              key: HOSTS_ANNOTATION
         - name: ORG_LABEL
           valueFrom:
             configMapKeyRef:
               name: shipyard-config
               key: ORG_LABEL
-        - name: ENV_LABEL
-          valueFrom:
-            configMapKeyRef:
-              name: shipyard-config
-              key: ENV_LABEL
-        - name: PATHS_ANNOTATION
-          valueFrom:
-            configMapKeyRef:
-              name: shipyard-config
-              key: PATHS_ANNOTATION
         - name: APP_NAME_LABEL
           valueFrom:
             configMapKeyRef:
