@@ -28,6 +28,7 @@ setup-containers:
 
 setup-k8s: test-kubectl
 	kubectl create -f deploy/shipyard-all.yaml
+	kubectl apply -f deploy/local-registry.yml
 
 setup: setup-containers setup-k8s
 
