@@ -1,5 +1,5 @@
 # Container configuration, what are we testing
-export ENROBER_TAG=v0.6.0
+export ENROBER_TAG=v0.7.1
 export DISPATCHER_TAG=latest
 export KILN_TAG=0.1.19
 
@@ -11,12 +11,16 @@ export API_BASE_PATH=http://$(shell minikube ip 2> /dev/null):30555/
 export APIGEE_ORG=adammagaluk1
 export APIGEE_ENV=test
 
+# Get apigee token
+export TOKEN=$(shell SSO_LOGIN_URL=https://login.e2e.apigee.net get_token)
+
 test-kubectl:
 	/bin/sh -c 'if [ "$$(kubectl config current-context)" != "minikube" ]; then exit 1; fi'
 
+.ONESHELL:
+.SHELLFLAGS = -e
 setup-containers:
 	eval $$(minikube docker-env)
-
 	docker pull thirtyx/kiln:$(KILN_TAG)
 	docker tag thirtyx/kiln:$(KILN_TAG) thirtyx/kiln
 
@@ -25,6 +29,11 @@ setup-containers:
 
 	docker pull thirtyx/dispatcher:$(DISPATCHER_TAG)
 	docker tag thirtyx/dispatcher:$(DISPATCHER_TAG) thirtyx/dispatcher
+
+# 	For testing without kiln
+	docker pull thirtyx/nodejs-k8s-env:latest
+	docker tag thirtyx/nodejs-k8s-env localhost:5000/$(APIGEE_ORG)/dep1:0
+	docker push localhost:5000/$(APIGEE_ORG)/dep1:0
 
 setup-k8s: test-kubectl
 	kubectl create -f deploy/shipyard-all.yaml
@@ -37,8 +46,3 @@ teardown: test-kubectl
 
 test: test-kubectl
 	go test -v ./test/...
-
-get-token:
-	export TOKEN=`SSO_LOGIN_URL=https://login.e2e.apigee.net get_token`
-
-

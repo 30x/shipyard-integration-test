@@ -23,6 +23,7 @@ data:
   APP_NAME_LABEL: "edge/app.name"
   APP_REV_LABEL: "edge/app.rev"
   AUTH_API_HOST: "https://api.e2e.apigee.net/"
+  DOCKER_REGISTRY_URL: "localhost:5000"
 
 ---
 
@@ -125,7 +126,7 @@ spec:
     spec:
       containers:
       - name: enrober
-        image: thirtyx/enrober:v0.6.0
+        image: thirtyx/enrober
         imagePullPolicy: IfNotPresent
         env:
           - name: DEPLOY_STATE
@@ -145,6 +146,11 @@ spec:
               configMapKeyRef:
                 name: shipyard-config
                 key: AUTH_API_HOST
+          - name: DOCKER_REGISTRY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: shipyard-config
+                key: DOCKER_REGISTRY_URL
           - name: ROUTABLE_LABEL_SELECTOR
             valueFrom:
               configMapKeyRef:
@@ -204,7 +210,7 @@ spec:
     spec:
       containers:
       - image: thirtyx/kiln
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: kiln
         ports:
         - containerPort: 5280
@@ -213,8 +219,6 @@ spec:
           value: "5280"
         - name: DEPLOY_STATE
           value: "DEV_CONTAINER"
-        - name: DOCKER_REGISTRY_URL
-          value: "local"
         - name: DOCKER_PROVIDER
           value: docker
         - name: DOCKER_HOST
@@ -228,6 +232,11 @@ spec:
             configMapKeyRef:
               name: shipyard-config
               key: AUTH_API_HOST
+        - name: DOCKER_REGISTRY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: shipyard-config
+              key: DOCKER_REGISTRY_URL
         - name: ORG_LABEL
           valueFrom:
             configMapKeyRef:

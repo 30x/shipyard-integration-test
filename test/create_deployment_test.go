@@ -22,7 +22,6 @@ var _ = Describe("Create Deployment", func() {
                 "targetPath": "/target"
               }],
               "replicas": 1,
-              "ptsURL": "https://api.myjson.com/bins/17l629",
               "envVars": [
               {
                 "name": "test1",
