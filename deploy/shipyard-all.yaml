@@ -125,7 +125,7 @@ spec:
     spec:
       containers:
       - name: enrober
-        image: thirtyx/enrober:v0.6.0
+        image: thirtyx/enrober:v0.7.1
         imagePullPolicy: IfNotPresent
         env:
           - name: DEPLOY_STATE
@@ -140,6 +140,8 @@ spec:
             value: "internal-router.apigee"
           - name: PTS_URL_HOST_RESTRICTION
             value: "false"
+          - name: DOCKER_REGISTRY_URL
+            value: "localhost:5000"
           - name: AUTH_API_HOST
             valueFrom:
               configMapKeyRef:
@@ -203,7 +205,7 @@ spec:
         edge/paths: '[{"basePath": "/organizations", "containerPort": "5280"}]'
     spec:
       containers:
-      - image: thirtyx/kiln
+      - image: thirtyx/kiln:0.1.19
         imagePullPolicy: Always
         name: kiln
         ports:
@@ -214,7 +216,7 @@ spec:
         - name: DEPLOY_STATE
           value: "DEV_CONTAINER"
         - name: DOCKER_REGISTRY_URL
-          value: "local"
+          value: "localhost:5000"
         - name: DOCKER_PROVIDER
           value: docker
         - name: DOCKER_HOST
