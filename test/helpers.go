@@ -1,10 +1,17 @@
 package test
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	kube "github.com/30x/dispatcher/kubernetes"
+	. "github.com/onsi/gomega"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"os"
+	"path/filepath"
 )
 
 func getHostsFromNamespace(nsName string) ([]string, error) {
@@ -56,4 +63,40 @@ func getRoutingSecret(nsName string) (string, error) {
 
 	return base64.StdEncoding.EncodeToString(data), nil
 
+}
+
+func newFileUploadRequest(hostBase string, organization string, application string, path string) *http.Response {
+	file, err := os.Open(path)
+	Expect(err).Should(BeNil())
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", filepath.Base(path))
+	Expect(err).Should(BeNil())
+	_, err = io.Copy(part, file)
+	Expect(err).Should(BeNil())
+
+	writer.WriteField("name", application)
+
+	//set the content type
+	writer.FormDataContentType()
+
+	err = writer.Close()
+	Expect(err).Should(BeNil())
+
+	uri := fmt.Sprintf("%sorganizations/%s/apps", hostBase, organization)
+	request, err := http.NewRequest("POST", uri, body)
+	Expect(err).Should(BeNil())
+
+	request.Host = ShipyardHost
+	request.Header.Add("Host", ShipyardHost)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	request.Header.Set("Authorization", "Bearer "+os.Getenv("TOKEN"))
+
+	client := &http.Client{}
+
+	response, err := client.Do(request)
+	Expect(err).Should(BeNil())
+	return response
 }
