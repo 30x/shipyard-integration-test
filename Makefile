@@ -19,8 +19,8 @@ test-kubectl:
 
 .ONESHELL:
 .SHELLFLAGS = -e
-setup-containers:
-	eval $$(minikube docker-env)
+setup-containers: setup-registry
+	$(eval $(shell minikube docker-env))
 	docker pull thirtyx/kiln:$(KILN_TAG)
 	docker tag thirtyx/kiln:$(KILN_TAG) thirtyx/kiln
 
@@ -35,9 +35,11 @@ setup-containers:
 	docker tag thirtyx/nodejs-k8s-env localhost:5000/$(APIGEE_ORG)/dep1:0
 	docker push localhost:5000/$(APIGEE_ORG)/dep1:0
 
+setup-registry: test-kubectl
+	kubectl apply -f deploy/local-registry.yml
+
 setup-k8s: test-kubectl
 	kubectl create -f deploy/shipyard-all.yaml
-	kubectl apply -f deploy/local-registry.yml
 
 setup: setup-containers setup-k8s
 

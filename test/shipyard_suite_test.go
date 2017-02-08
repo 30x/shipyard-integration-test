@@ -24,5 +24,5 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	kubeClient, err := kube.GetClient()
 	Expect(err).Should(BeNil())
-	kubeClient.Core().Namespaces().Delete(os.Getenv("APIGEE_ORG")+"-"+os.Getenv("APIGEE_ENV")+"asd", nil)
+	kubeClient.Core().Namespaces().Delete(os.Getenv("APIGEE_ORG")+"-"+os.Getenv("APIGEE_ENV"), nil)
 })

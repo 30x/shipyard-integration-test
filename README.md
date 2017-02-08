@@ -14,6 +14,8 @@
 
 1. Get Apigee token. `make get-token`
 
+1. Setup docker env. `eval $(minikube docker-env)`
+
 1. Setup shipyard k8s deployment. `make setup`. This pulls the image tags for each project and tags them as latest in minikube. Then it deploys `deploy/shipyard-all.yaml`
 
 1. `make test` This runs the Integration test suite in `test/...` For now only create deployment is setup.
