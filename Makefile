@@ -44,7 +44,7 @@ setup-k8s: test-kubectl
 setup: setup-containers setup-k8s
 
 teardown: test-kubectl
-	kubectl delete ns/shipyard || true
+	kubectl delete --ignore-not-found=true ns/shipyard
 
 test: test-kubectl
 	go test -v ./test/...
