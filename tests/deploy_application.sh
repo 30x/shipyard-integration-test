@@ -36,7 +36,7 @@ test_env_vars() {
     rev=$(import_application $1 "./fixture/app.zip")
     verify_application_exists $1 $rev
     
-    json="{ \"deploymentName\": \"$1\", \"revision\": $rev, \"envVars\": [{\"name\": \"TEST_VAR\", \"value\": \"abc123\", \"OTHER_VAR\": \"new-val\"}] }"
+    json="{ \"deploymentName\": \"$1\", \"revision\": $rev, \"envVars\": [{\"name\": \"TEST_VAR\", \"value\": \"abc123\"}, { \"name\": \"OTHER_VAR\", \"value\": \"new-val\" }] }"
 
     deploy_application "$json"
     verify_deployment_exists_in_api $1
@@ -115,8 +115,7 @@ run_test "Deploy Application" test_deploy_basic "test-app"
 # Failing
 #run_test "Deploy Application with Paths" test_deploy_with_paths "test-app"
 
-# Failing
-#run_test "Deploy Application with Env Vars" test_env_vars "test-app"
+run_test "Deploy Application with Env Vars" test_env_vars "test-app"
 
 run_test "Remove Deployment" test_remove_deployment "test-app"
 
